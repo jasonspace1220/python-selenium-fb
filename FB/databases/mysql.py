@@ -76,18 +76,18 @@ class mysql():
 
         return
 
-    def getFBMessageUrls(self):
+    def getFBMessageUrlsById(self,id):
         self.connect = pymysql.connect(**self.connect_config)
         self.cursor = self.connect.cursor()
-        self.cursor.execute("SELECT url FROM fb_message")
-        data = self.cursor.fetchall()
+        self.cursor.execute("SELECT url FROM fb_message WHERE id = " + id)
+        data = self.cursor.fetchone()
         self.connect.close()
 
-        returnData = []
-        for row in data:
-            returnData.append(row['url'])
+        # returnData = []
+        # for row in data:
+        #     returnData.append(row['url'])
 
-        return returnData
+        return data['url']
 
     def getFBMessageCount(self):
         self.connect = pymysql.connect(**self.connect_config)

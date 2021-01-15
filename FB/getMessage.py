@@ -10,6 +10,7 @@ from bs4 import BeautifulSoup
 from databases import mysql
 import json
 
+import sys 
 from time import sleep
 import os
 import datetime
@@ -22,6 +23,7 @@ fb_pwd = 'jasongod'
 
 urls = []
 queries = []
+
 
 
 # logging.info('start')
@@ -52,7 +54,9 @@ def transform(url):
         # Login
         driver.get(fb_url + 'login')
 
-        sleep(4)
+        # sleep(4)
+        WebDriverWait(driver, 5).until(expected_conditions.presence_of_element_located((By.CSS_SELECTOR, "input[name='email']")))
+
         # Login FaceBook
         username_input = driver.find_element_by_css_selector("input[name='email']")
         password_input = driver.find_element_by_css_selector("input[name='pass']")
@@ -67,7 +71,9 @@ def transform(url):
     print('Processing: %s' % url)
 
     driver.get(url)
-    sleep(2)
+    # sleep(2)
+    WebDriverWait(driver, 5).until(expected_conditions.presence_of_element_located((By.CSS_SELECTOR, "#watch_feed > div > div.c9zspvje.ad2k81qe.f9o22wc5.jb3vyjys.f7vcsfb0.qt6c0cv9.fjf4s8hc.n24pcjkn.l0gotlms.igoxciu3 > div > div > div > div.k4urcfbm > div.sq6gx45u.buofh1pr.cbu4d94t.j83agx80 > div:nth-child(1) > div > div.l9j0dhe7.hpfvmrgz.bkfpd7mw.g5gj957u.buofh1pr.j83agx80 > div > div.pfnyh3mw.j83agx80.bp9cbjyn > div > span")))
+
     print(url)
 
     # Click 留言 按鈕
@@ -75,11 +81,17 @@ def transform(url):
     msg_count = msg_btn.text.replace("則留言", "")
     fbSqlData.updateFBMessageOne(url,"msg_count",msg_count)
     print("留言數 : ",msg_count)
-
     msg_btn.click()
 
-    sleep(2)
     
+    # 最相關 按鈕  -> 所有留言
+    most_recent_btn_selector = "#watch_feed > div > div.c9zspvje.ad2k81qe.f9o22wc5.jb3vyjys.f7vcsfb0.qt6c0cv9.fjf4s8hc.n24pcjkn.l0gotlms.igoxciu3 > div > div > div > div.k4urcfbm > div.sq6gx45u.buofh1pr.cbu4d94t.j83agx80 > div.cwj9ozl2.j83agx80.cbu4d94t.buofh1pr.d76ob5m9.eg9m0zos.du4w35lb > div.l6v480f0.pfnyh3mw.kvgmc6g5.wkznzc2l.oygrvhab.dhix69tm.j83agx80.bkfpd7mw > div > div > span"
+    most_recent_btn = WebDriverWait(driver, 10).until(expected_conditions.presence_of_element_located((By.CSS_SELECTOR, most_recent_btn_selector)))
+    most_recent_btn.click()
+    
+    all_message_btn_selector = "#mount_0_0 > div > div:nth-child(1) > div.rq0escxv.l9j0dhe7.du4w35lb > div.rq0escxv.l9j0dhe7.du4w35lb > div > div > div:nth-child(2) > div > div > div.j34wkznp.qp9yad78.pmk7jnqg.kr520xx4 > div.iqfcb0g7.tojvnm2t.a6sixzi8.k5wvi7nf.q3lfd5jv.pk4s997a.bipmatt0.cebpdrjk.qowsmv63.owwhemhu.dp1hu0rb.dhp61c6y.l9j0dhe7.iyyx5f41.a8s20v7p > div > div > div.rq0escxv.jgsskzai.cwj9ozl2.nwpbqux9.ue3kfks5.pw54ja7n.uo3d90p7.l82x9zwi.ni8dbmo4.stjgntxs > div > div.j83agx80.cbu4d94t.buofh1pr.l9j0dhe7 > div > div:nth-child(3) > div.bp9cbjyn.j83agx80.btwxx1t3.buofh1pr.i1fnvgqd.hpfvmrgz > div > div:nth-child(2) > span"
+    all_message_btn = WebDriverWait(driver, 10).until(expected_conditions.presence_of_element_located((By.CSS_SELECTOR, all_message_btn_selector)))
+    most_recent_btn.click()
 
     #查看更多留言
     see_more_msg_btn_selector = "#watch_feed > div > div.c9zspvje.ad2k81qe.f9o22wc5.jb3vyjys.f7vcsfb0.qt6c0cv9.fjf4s8hc.n24pcjkn.l0gotlms.igoxciu3 > div > div > div > div.k4urcfbm > div.sq6gx45u.buofh1pr.cbu4d94t.j83agx80 > div.cwj9ozl2.j83agx80.cbu4d94t.buofh1pr.d76ob5m9.eg9m0zos.du4w35lb > div.l9j0dhe7.tkr6xdv7.buofh1pr.eg9m0zos > div > div.j83agx80.buofh1pr.jklb3kyz.l9j0dhe7 > div.oajrlxb2.bp9cbjyn.g5ia77u1.mtkw9kbi.tlpljxtp.qensuy8j.ppp5ayq2.goun2846.ccm00jje.s44p3ltw.mk2mc5f4.rt8b4zig.n8ej3o3l.agehan2d.sk4xxmp2.rq0escxv.nhd2j8a9.pq6dq46d.mg4g778l.btwxx1t3.g5gj957u.p7hjln8o.kvgmc6g5.cxmmr5t8.oygrvhab.hcukyx3x.tgvbjcpo.hpfvmrgz.jb3vyjys.p8fzw8mz.qt6c0cv9.a8nywdso.l9j0dhe7.i1ao9s8h.esuyzwwr.f1sip0of.du4w35lb.lzcic4wl.abiwlrkh.gpro0wi8.m9osqain.buofh1pr > span > span"
@@ -94,7 +106,7 @@ def transform(url):
 
         print("點查看留言數")
 
-        sleep(2)
+        sleep(1)
 
     #拉 留言的 List
     msg_ul_selector = "#watch_feed > div > div.c9zspvje.ad2k81qe.f9o22wc5.jb3vyjys.f7vcsfb0.qt6c0cv9.fjf4s8hc.n24pcjkn.l0gotlms.igoxciu3 > div > div > div > div.k4urcfbm > div.sq6gx45u.buofh1pr.cbu4d94t.j83agx80 > div.cwj9ozl2.j83agx80.cbu4d94t.buofh1pr.d76ob5m9.eg9m0zos.du4w35lb > div.l9j0dhe7.tkr6xdv7.buofh1pr.eg9m0zos > ul"
@@ -117,14 +129,12 @@ def transform(url):
         for msg_ctx_row in msg_ul.select(msg_ctx_selector):
             ctx = ""
             for msg_ctx in msg_ctx_row.select("div") : 
-                ctx = ctx + "\n" + msg_ctx.text
+                ctx = ctx + " " + msg_ctx.text
 
             data[y]["ctx"] = ctx
             y+=1
 
     fbSqlData.updateFBMessageOne(url,"msgs",json.dumps(data ,ensure_ascii=False))
-    # print(json.dumps(data ,ensure_ascii=False))
-    print(data)
 
     return
 
@@ -137,16 +147,15 @@ def check_more_msg_btn(driver,selector):
     except: 
         return False
 
-keyList = fbSqlData.getFBMessageUrls()
-keyCount = fbSqlData.getFBMessageCount()
-nowCount = 1
-
-for row in keyList:
-    if nowCount == keyCount : 
-        transform(row)
-        driver.close()
-    else : 
-        transform(row)
-        nowCount+=1
-
-print(queries)
+# dis = {
+#     1 : {
+#         "name" : "GG",
+#         "ctx" : "fuck"
+#     }
+# }
+# fbSqlData.updateFBMessageOne("https://fb.watch/2-C_YQ9D11/","msgs",json.dumps(dis ,ensure_ascii=False))
+# try:
+url = fbSqlData.getFBMessageUrlsById(sys.argv[1])
+transform(url)
+# except: 
+#     print("Not Found ID")
