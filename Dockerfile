@@ -16,4 +16,4 @@ ENV db_password 123
 
 ENV db_database adpost2021_v1_alpha
 
-CMD python FB/getMessage_v2.py ${db_host} ${db_user} ${db_password} ${db_database}} ${fb_message_id}
+CMD python FB/getMessage_v2.py ${db_host} ${db_user} ${db_password} ${db_database} ${fb_message_id}

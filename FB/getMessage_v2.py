@@ -51,6 +51,7 @@ db_config = {
     'charset':'utf8mb4',
     'port':3306,
 }
+print(db_config)
 
 db = mysqlV2.mysqlV2(db_config)
 
@@ -169,10 +170,10 @@ def check_more_msg_btn(driver,selector):
     except: 
         return False
 
-try:
-    url = db.getPostUrlById(sys.argv[5])
-    transform(url)
-except: 
-    print("Not Found ID")
-# url = db.getPostUrlById(sys.argv[5])
-# transform(url)
+# try:
+#     url = db.getPostUrlById(sys.argv[5])
+#     transform(url)
+# except: 
+#     print("Not Found ID")
+url = db.getPostUrlById(sys.argv[5])
+transform(url)
