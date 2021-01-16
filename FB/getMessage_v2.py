@@ -7,7 +7,7 @@ from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
 
 from bs4 import BeautifulSoup
-from databases import mysql
+from databases import mysqlV2
 import json
 
 import sys 
@@ -24,9 +24,6 @@ fb_pwd = 'jasongod'
 urls = []
 queries = []
 
-
-
-# logging.info('start')
 chrome_options = webdriver.ChromeOptions()
 
 chrome_options.add_argument("--no-sandbox") 
@@ -46,7 +43,16 @@ chrome_options.add_argument('--user-agent="Mozilla/5.0 (Macintosh; Intel Mac OS 
 driver = webdriver.Chrome(chrome_options=chrome_options)
 driver.set_window_size(1440, 877)
 
-fbSqlData = mysql.mysql()
+db_config = {
+    'host' : sys.argv[1],
+    'user' : sys.argv[2],
+    'password' : sys.argv[3],
+    'database' : sys.argv[4],
+    'charset':'utf8mb4',
+    'port':3306,
+}
+
+db = mysqlV2.mysqlV2(db_config)
 
 def transform(url):
 
@@ -79,7 +85,7 @@ def transform(url):
     # Click 留言 按鈕
     msg_btn = driver.find_element(By.CSS_SELECTOR, "#watch_feed > div > div.c9zspvje.ad2k81qe.f9o22wc5.jb3vyjys.f7vcsfb0.qt6c0cv9.fjf4s8hc.n24pcjkn.l0gotlms.igoxciu3 > div > div > div > div.k4urcfbm > div.sq6gx45u.buofh1pr.cbu4d94t.j83agx80 > div:nth-child(1) > div > div.l9j0dhe7.hpfvmrgz.bkfpd7mw.g5gj957u.buofh1pr.j83agx80 > div > div.pfnyh3mw.j83agx80.bp9cbjyn > div > span")
     msg_count = msg_btn.text.replace("則留言", "")
-    fbSqlData.updateFBMessageOne(url,"msg_count",msg_count)
+    db.updateFBMessageOne(sys.argv[5],"total_comment_count",msg_count)
     print("留言數 : ",msg_count)
     msg_btn.click()
 
@@ -108,6 +114,22 @@ def transform(url):
 
         sleep(1)
 
+    #檢視 額外N則留言
+    see_more_other_btn_selector = "#watch_feed > div > div.c9zspvje.ad2k81qe.f9o22wc5.jb3vyjys.f7vcsfb0.qt6c0cv9.fjf4s8hc.n24pcjkn.l0gotlms.igoxciu3 > div > div > div > div.k4urcfbm > div.sq6gx45u.buofh1pr.cbu4d94t.j83agx80 > div.cwj9ozl2.j83agx80.cbu4d94t.buofh1pr.d76ob5m9.eg9m0zos.du4w35lb > div.l9j0dhe7.tkr6xdv7.buofh1pr.eg9m0zos > div > div.j83agx80.buofh1pr.jklb3kyz.l9j0dhe7 > div.oajrlxb2.bp9cbjyn.g5ia77u1.mtkw9kbi.tlpljxtp.qensuy8j.ppp5ayq2.goun2846.ccm00jje.s44p3ltw.mk2mc5f4.rt8b4zig.n8ej3o3l.agehan2d.sk4xxmp2.rq0escxv.nhd2j8a9.pq6dq46d.mg4g778l.btwxx1t3.g5gj957u.p7hjln8o.kvgmc6g5.cxmmr5t8.oygrvhab.hcukyx3x.tgvbjcpo.hpfvmrgz.jb3vyjys.p8fzw8mz.qt6c0cv9.a8nywdso.l9j0dhe7.i1ao9s8h.esuyzwwr.f1sip0of.du4w35lb.lzcic4wl.abiwlrkh.gpro0wi8.m9osqain.buofh1pr > span > span"
+    
+    while check_more_msg_btn(driver,see_more_other_btn_selector) : 
+    
+        myElem = WebDriverWait(driver, 5).until(expected_conditions.presence_of_element_located((By.CSS_SELECTOR, see_more_other_btn_selector)))
+
+        more_msg_btn = driver.find_element(By.CSS_SELECTOR,see_more_other_btn_selector)
+
+        more_msg_btn.click()
+
+        print("點查看留言數")
+
+        sleep(1)
+
+
     #拉 留言的 List
     msg_ul_selector = "#watch_feed > div > div.c9zspvje.ad2k81qe.f9o22wc5.jb3vyjys.f7vcsfb0.qt6c0cv9.fjf4s8hc.n24pcjkn.l0gotlms.igoxciu3 > div > div > div > div.k4urcfbm > div.sq6gx45u.buofh1pr.cbu4d94t.j83agx80 > div.cwj9ozl2.j83agx80.cbu4d94t.buofh1pr.d76ob5m9.eg9m0zos.du4w35lb > div.l9j0dhe7.tkr6xdv7.buofh1pr.eg9m0zos > ul"
     msg_name_selector = "div:nth-child(1) > div > div.g3eujd1d.ni8dbmo4.stjgntxs.hv4rvrfc > div > div.q9uorilb.bvz0fpym.c1et5uql.sf5mxxl7 > div > div > div > div > div.nc684nl6 > a > span > span"
@@ -134,7 +156,7 @@ def transform(url):
             data[y]["ctx"] = ctx
             y+=1
 
-    fbSqlData.updateFBMessageOne(url,"msgs",json.dumps(data ,ensure_ascii=False))
+    db.updateFBMessageOne(sys.argv[5],"comment_context",json.dumps(data ,ensure_ascii=False))
 
     return
 
@@ -147,9 +169,10 @@ def check_more_msg_btn(driver,selector):
     except: 
         return False
 
-
 try:
-    url = fbSqlData.getFBMessageUrlsById(sys.argv[1])
+    url = db.getPostUrlById(sys.argv[5])
     transform(url)
 except: 
     print("Not Found ID")
+# url = db.getPostUrlById(sys.argv[5])
+# transform(url)
